@@ -17,10 +17,35 @@ int main() {
 
     if (isNoError() && isProcessValid(process)) {
       uintptr_t baseAddress = getBaseAddressByRegion(process, 16);
-      uintptr_t pointerAddress = (uintptr_t)readAddress(process, baseAddress + baseOffset, sizeof(uintptr_t));
-      int target = (int)readAddress(process, pointerAddress - offset, sizeof(int));
 
-      printf("[x] result: %d\n", target);
+      if (baseAddress) {
+        uintptr_t pointerAddress = (uintptr_t)readAddress(
+          process,
+          baseAddress + baseOffset,
+          sizeof(uintptr_t)
+        );
+
+        if (isNoError()) {
+          uintptr_t targetAddress = pointerAddress - offset;
+
+          int target = (int)readAddress(
+            process,
+            targetAddress,
+            sizeof(int)
+          );
+
+          if (isNoError()) {
+            printf("[x] old result: %d\n", target);
+
+            int hack = 12345;
+            writeAddress(process, targetAddress, sizeof(hack), &hack);
+
+            if (isNoError()) {
+              printf("[x] write success : )\n");
+            }
+          }
+        }
+      }
     }
   }
 
