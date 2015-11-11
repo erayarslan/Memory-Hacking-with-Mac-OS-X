@@ -1,0 +1,29 @@
+            uintptr_t base = getBaseAddress(process);
+            task_dyld_info_data_t info =  getInfoAddress(process);
+            
+            struct dyld_all_image_infos* infos;
+            // infos = xprocess_read(process, info.all_image_info_addr, info.all_image_info_size);
+            
+            unsigned int _result_size;
+            vm_read(process,
+                    info.all_image_info_addr,
+                    info.all_image_info_size,
+                    (vm_offset_t*)&infos,
+                    &_result_size);
+            
+            
+            size_t infoCount = infos->infoArrayCount;
+            
+            for (size_t i = 0; i < infoCount; ++i) {
+                struct dyld_image_info *info;
+                
+                unsigned int _result_size2;
+                vm_protect(process, (vm_offset_t*)&infos->infoArray[i], sizeof(struct dyld_image_info), 0,VM_PROT_READ);
+                vm_read(process,
+                        (vm_offset_t*)&infos->infoArray[i],
+                        sizeof(struct dyld_image_info),
+                        (vm_offset_t*)&info,
+                        &_result_size2);
+                
+                printf("%s %p\n", info->imageFilePath, &infos->infoArray[i]);
+            }
